@@ -5,10 +5,8 @@
 #ifndef V8_OBJECTS_MAYBE_OBJECT_INL_H_
 #define V8_OBJECTS_MAYBE_OBJECT_INL_H_
 
+#include "src/objects-inl.h"
 #include "src/objects/maybe-object.h"
-
-#include "include/v8.h"
-#include "src/globals.h"
 
 namespace v8 {
 namespace internal {
@@ -103,6 +101,8 @@ Object* MaybeObject::GetHeapObjectOrSmi() {
   }
   return GetHeapObject();
 }
+
+bool MaybeObject::IsObject() { return IsSmi() || IsStrongHeapObject(); }
 
 Object* MaybeObject::ToObject() {
   DCHECK(!HasWeakHeapObjectTag(this));

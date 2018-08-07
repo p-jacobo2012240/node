@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "src/builtins/builtins-utils.h"
+#include "src/builtins/builtins-utils-inl.h"
 #include "src/builtins/builtins.h"
 #include "src/counters.h"
 #include "src/objects-inl.h"
@@ -57,7 +57,7 @@ BUILTIN(SymbolKeyFor) {
     result = symbol->name();
     DCHECK(result->IsString());
   } else {
-    result = isolate->heap()->undefined_value();
+    result = ReadOnlyRoots(isolate).undefined_value();
   }
   DCHECK_EQ(isolate->heap()->public_symbol_table()->SlowReverseLookup(*symbol),
             result);

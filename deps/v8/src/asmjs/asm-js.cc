@@ -234,13 +234,13 @@ UnoptimizedCompilationJob::Status AsmJsCompilationJob::ExecuteJobImpl() {
   Zone* compile_zone = compilation_info()->zone();
   Zone translate_zone(allocator_, ZONE_NAME);
 
-  Utf16CharacterStream* stream = parse_info()->character_stream();
+  ScannerStream* stream = parse_info()->character_stream();
   base::Optional<AllowHandleDereference> allow_deref;
   if (stream->can_access_heap()) {
     allow_deref.emplace();
   }
-  stream->Seek(compilation_info()->literal()->start_position());
-  wasm::AsmJsParser parser(&translate_zone, stack_limit(), stream);
+  wasm::AsmJsParser parser(&translate_zone, stack_limit(), stream,
+                           compilation_info()->literal()->start_position());
   if (!parser.Run()) {
     if (!FLAG_suppress_asm_messages) {
       ReportCompilationFailure(parse_info(), parser.failure_location(),
@@ -338,10 +338,10 @@ MaybeHandle<Object> AsmJs::InstantiateAsmWasm(Isolate* isolate,
   base::ElapsedTimer instantiate_timer;
   instantiate_timer.Start();
   Handle<HeapNumber> uses_bitset(
-      HeapNumber::cast(wasm_data->get(kWasmDataUsesBitSet)));
+      HeapNumber::cast(wasm_data->get(kWasmDataUsesBitSet)), isolate);
   Handle<WasmModuleObject> module(
-      WasmModuleObject::cast(wasm_data->get(kWasmDataCompiledModule)));
-  Handle<Script> script(Script::cast(shared->script()));
+      WasmModuleObject::cast(wasm_data->get(kWasmDataCompiledModule)), isolate);
+  Handle<Script> script(Script::cast(shared->script()), isolate);
   // TODO(mstarzinger): The position currently points to the module definition
   // but should instead point to the instantiation site (more intuitive).
   int position = shared->StartPosition();
@@ -405,7 +405,7 @@ MaybeHandle<Object> AsmJs::InstantiateAsmWasm(Isolate* isolate,
   Handle<Name> single_function_name(
       isolate->factory()->InternalizeUtf8String(AsmJs::kSingleFunctionName));
   MaybeHandle<Object> single_function =
-      Object::GetProperty(module_object, single_function_name);
+      Object::GetProperty(isolate, module_object, single_function_name);
   if (!single_function.is_null() &&
       !single_function.ToHandleChecked()->IsUndefined(isolate)) {
     return single_function;
@@ -413,7 +413,7 @@ MaybeHandle<Object> AsmJs::InstantiateAsmWasm(Isolate* isolate,
 
   Handle<String> exports_name =
       isolate->factory()->InternalizeUtf8String("exports");
-  return Object::GetProperty(module_object, exports_name);
+  return Object::GetProperty(isolate, module_object, exports_name);
 }
 
 }  // namespace internal

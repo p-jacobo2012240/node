@@ -17,9 +17,9 @@ namespace v8 {
 namespace internal {
 
 class BitVector;  // forward declaration
-class Counters;
 
 namespace compiler {  // external declarations from compiler.
+class NodeOriginTable;
 class WasmGraphBuilder;
 }
 
@@ -41,22 +41,22 @@ struct FunctionBody {
 };
 
 V8_EXPORT_PRIVATE DecodeResult VerifyWasmCode(AccountingAllocator* allocator,
-                                              const wasm::WasmModule* module,
+                                              const WasmModule* module,
                                               FunctionBody& body);
 
-// Note: If run in the background thread, must follow protocol using
-// isolate::async_counters() to guarantee usability of counters argument.
-DecodeResult VerifyWasmCodeWithStats(AccountingAllocator* allocator,
-                                     const wasm::WasmModule* module,
-                                     FunctionBody& body, bool is_wasm,
-                                     Counters* counters);
-
 DecodeResult BuildTFGraph(AccountingAllocator* allocator, TFBuilder* builder,
-                          FunctionBody& body);
+                          FunctionBody& body,
+                          compiler::NodeOriginTable* node_origins);
 enum PrintLocals { kPrintLocals, kOmitLocals };
 V8_EXPORT_PRIVATE
 bool PrintRawWasmCode(AccountingAllocator* allocator, const FunctionBody& body,
-                      const wasm::WasmModule* module, PrintLocals print_locals);
+                      const WasmModule* module, PrintLocals print_locals);
+
+V8_EXPORT_PRIVATE
+bool PrintRawWasmCode(AccountingAllocator* allocator, const FunctionBody& body,
+                      const WasmModule* module, PrintLocals print_locals,
+                      std::ostream& out,
+                      std::vector<int>* line_numbers = nullptr);
 
 // A simplified form of AST printing, e.g. from a debugger.
 void PrintRawWasmCode(const byte* start, const byte* end);
@@ -72,7 +72,7 @@ inline DecodeResult BuildTFGraph(AccountingAllocator* allocator,
                                  TFBuilder* builder, FunctionSig* sig,
                                  const byte* start, const byte* end) {
   FunctionBody body(sig, 0, start, end);
-  return BuildTFGraph(allocator, builder, body);
+  return BuildTFGraph(allocator, builder, body, nullptr);
 }
 
 struct BodyLocalDecls {

@@ -11,12 +11,13 @@
 #include "src/base/platform/platform.h"
 #include "src/globals.h"
 #include "src/objects-inl.h"
+#include "src/string-builder-inl.h"
 
 namespace v8 {
 namespace internal {
 
 CallPrinter::CallPrinter(Isolate* isolate, bool is_user_js)
-    : builder_(isolate) {
+    : builder_(new IncrementalStringBuilder(isolate)) {
   isolate_ = isolate;
   position_ = 0;
   num_prints_ = 0;
@@ -29,6 +30,8 @@ CallPrinter::CallPrinter(Isolate* isolate, bool is_user_js)
   function_kind_ = kNormalFunction;
   InitializeAstVisitor(isolate);
 }
+
+CallPrinter::~CallPrinter() {}
 
 CallPrinter::ErrorHint CallPrinter::GetErrorHint() const {
   if (is_call_error_) {
@@ -45,7 +48,7 @@ Handle<String> CallPrinter::Print(FunctionLiteral* program, int position) {
   num_prints_ = 0;
   position_ = position;
   Find(program);
-  return builder_.Finish().ToHandleChecked();
+  return builder_->Finish().ToHandleChecked();
 }
 
 
@@ -65,13 +68,13 @@ void CallPrinter::Find(AstNode* node, bool print) {
 void CallPrinter::Print(const char* str) {
   if (!found_ || done_) return;
   num_prints_++;
-  builder_.AppendCString(str);
+  builder_->AppendCString(str);
 }
 
 void CallPrinter::Print(Handle<String> str) {
   if (!found_ || done_) return;
   num_prints_++;
-  builder_.AppendString(str);
+  builder_->AppendString(str);
 }
 
 void CallPrinter::VisitBlock(Block* node) {
@@ -498,16 +501,14 @@ void CallPrinter::VisitRewritableExpression(RewritableExpression* node) {
   Find(node->expression());
 }
 
-
-void CallPrinter::FindStatements(ZoneList<Statement*>* statements) {
+void CallPrinter::FindStatements(ZonePtrList<Statement>* statements) {
   if (statements == nullptr) return;
   for (int i = 0; i < statements->length(); i++) {
     Find(statements->at(i));
   }
 }
 
-
-void CallPrinter::FindArguments(ZoneList<Expression*>* arguments) {
+void CallPrinter::FindArguments(ZonePtrList<Expression>* arguments) {
   if (found_) return;
   for (int i = 0; i < arguments->length(); i++) {
     Find(arguments->at(i));
@@ -589,7 +590,7 @@ void AstPrinter::Print(const char* format, ...) {
   }
 }
 
-void AstPrinter::PrintLabels(ZoneList<const AstRawString*>* labels) {
+void AstPrinter::PrintLabels(ZonePtrList<const AstRawString>* labels) {
   if (labels != nullptr) {
     for (int i = 0; i < labels->length(); i++) {
       PrintLiteral(labels->at(i), false);
@@ -748,8 +749,7 @@ void AstPrinter::PrintLiteralWithModeIndented(const char* info, Variable* var,
   }
 }
 
-
-void AstPrinter::PrintLabelsIndented(ZoneList<const AstRawString*>* labels) {
+void AstPrinter::PrintLabelsIndented(ZonePtrList<const AstRawString>* labels) {
   if (labels == nullptr || labels->length() == 0) return;
   PrintIndented("LABELS ");
   PrintLabels(labels);
@@ -809,15 +809,13 @@ void AstPrinter::PrintParameters(DeclarationScope* scope) {
   }
 }
 
-
-void AstPrinter::PrintStatements(ZoneList<Statement*>* statements) {
+void AstPrinter::PrintStatements(ZonePtrList<Statement>* statements) {
   for (int i = 0; i < statements->length(); i++) {
     Visit(statements->at(i));
   }
 }
 
-
-void AstPrinter::PrintArguments(ZoneList<Expression*>* arguments) {
+void AstPrinter::PrintArguments(ZonePtrList<Expression>* arguments) {
   for (int i = 0; i < arguments->length(); i++) {
     Visit(arguments->at(i));
   }
@@ -1040,7 +1038,7 @@ void AstPrinter::VisitInitializeClassFieldsStatement(
 }
 
 void AstPrinter::PrintClassProperties(
-    ZoneList<ClassLiteral::Property*>* properties) {
+    ZonePtrList<ClassLiteral::Property>* properties) {
   for (int i = 0; i < properties->length(); i++) {
     ClassLiteral::Property* property = properties->at(i);
     const char* prop_kind = nullptr;
@@ -1119,7 +1117,7 @@ void AstPrinter::VisitObjectLiteral(ObjectLiteral* node) {
 }
 
 void AstPrinter::PrintObjectProperties(
-    ZoneList<ObjectLiteral::Property*>* properties) {
+    ZonePtrList<ObjectLiteral::Property>* properties) {
   for (int i = 0; i < properties->length(); i++) {
     ObjectLiteral::Property* property = properties->at(i);
     const char* prop_kind = nullptr;

@@ -7,12 +7,14 @@
 
 #include "include/v8.h"
 #include "src/globals.h"
+#include "src/objects.h"
 
 namespace v8 {
 namespace internal {
 
 class HeapObject;
 class Smi;
+class StringStream;
 
 // A MaybeObject is either a SMI, a strong reference to a HeapObject, a weak
 // reference to a HeapObject, or a cleared weak reference. It's used for
@@ -43,6 +45,7 @@ class MaybeObject {
   inline HeapObject* GetHeapObject();
   inline Object* GetHeapObjectOrSmi();
 
+  inline bool IsObject();
   inline Object* ToObject();
 
   static MaybeObject* FromSmi(Smi* smi) {
@@ -58,7 +61,7 @@ class MaybeObject {
   static inline MaybeObject* MakeWeak(MaybeObject* object);
 
 #ifdef VERIFY_HEAP
-  static void VerifyMaybeObjectPointer(MaybeObject* p);
+  static void VerifyMaybeObjectPointer(Isolate* isolate, MaybeObject* p);
 #endif
 
   // Prints this object without details.
@@ -71,7 +74,6 @@ class MaybeObject {
 
 #ifdef OBJECT_PRINT
   void Print();
-
   void Print(std::ostream& os);
 #else
   void Print() { ShortPrint(); }

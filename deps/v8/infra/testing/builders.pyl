@@ -109,6 +109,7 @@
       {'name': 'test262_variants', 'shards': 4},
       {'name': 'test262_variants', 'variant': 'extra', 'shards': 2},
       {'name': 'v8testing'},
+      {'name': 'v8testing', 'suffix': 'isolates', 'test_args': ['--isolates'], 'shards': 2},
       {'name': 'v8testing', 'variant': 'extra'},
     ],
   },
@@ -217,6 +218,11 @@
       {'name': 'v8testing', 'variant': 'slow_path'},
     ],
   },
+  'v8_linux64_tsan_isolates_rel_ng_triggered': {
+    'tests': [
+      {'name': 'v8testing', 'test_args': ['--isolates'], 'shards': 7},
+    ],
+  },
   'v8_linux64_ubsan_rel_ng_triggered': {
     'tests': [
       {'name': 'v8testing', 'shards': 2},
@@ -248,7 +254,7 @@
       {'name': 'mjsunit_sp_frame_access'},
       {'name': 'mozilla'},
       {'name': 'test262'},
-      {'name': 'v8testing', 'shards': 7},
+      {'name': 'v8testing', 'shards': 9},
       {'name': 'v8testing', 'variant': 'extra', 'shards': 3},
     ],
   },

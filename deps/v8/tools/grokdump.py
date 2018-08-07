@@ -761,7 +761,7 @@ class MinidumpReader(object):
 
   def IsValidExceptionStackAddress(self, address):
     if not self.IsValidAddress(address): return False
-    return self.isExceptionStackAddress(address)
+    return self.IsExceptionStackAddress(address)
 
   def IsModuleAddress(self, address):
     return self.GetModuleForAddress(address) != None
@@ -1732,7 +1732,7 @@ class V8Heap(object):
     "ODDBALL_TYPE": Oddball,
     "FIXED_ARRAY_TYPE": FixedArray,
     "HASH_TABLE_TYPE": FixedArray,
-    "BOILERPLATE_DESCRIPTION_TYPE": FixedArray,
+    "OBJECT_BOILERPLATE_DESCRIPTION_TYPE": FixedArray,
     "SCOPE_INFO_TYPE": FixedArray,
     "JS_FUNCTION_TYPE": JSFunction,
     "SHARED_FUNCTION_INFO_TYPE": SharedFunctionInfo,
